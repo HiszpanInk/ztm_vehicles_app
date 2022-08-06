@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -22,7 +23,7 @@ type vehicle struct {
 	equipment                  string
 }
 
-func getVehicleByNum(vehicleNum int) vehicle {
+func getVehicleByNum(vehicleNum int) string {
 	var retrievedData [10]string
 
 	//get data from website and insert it into array
@@ -52,26 +53,33 @@ func getVehicleByNum(vehicleNum int) vehicle {
 		ticket_machine:             retrievedData[8],
 		equipment:                  retrievedData[9],
 	}
-
-	return retrievedVehicle
+	output_string := fmt.Sprintf(
+		`%s %s
+	`, retrievedVehicle.producer, retrievedVehicle.model)
+	return output_string
 }
 
 func main() {
 	a := app.New()
 	w := a.NewWindow("Hello")
 
-	output := widget.NewLabel("Numer taborowy pojazdu: ")
-	form := widget.NewForm(
-		widget.NewFormItem("search_number", widget.NewEntry()),
-	)
+	output := widget.NewLabel("")
+	entry := widget.NewEntry()
+	form := &widget.Form{
+		Items: []*widget.FormItem{ // we can specify items in the constructor
+			{Text: "Podaj numer taborowy pojazdu:", Widget: entry}},
+	}
 	form.OnSubmit = func() {
-		output.Text = "submitted"
+		input, error := strconv.Atoi(entry.Text)
+		fmt.Println(error)
+		output.Text = getVehicleByNum(input)
+
 		output.Refresh()
 	}
 
 	w.SetContent(container.NewVBox(
-		output,
 		form,
+		output,
 	))
 
 	w.ShowAndRun()
