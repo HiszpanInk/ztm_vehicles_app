@@ -3,11 +3,49 @@ package main
 import (
 	"fmt"
 
+	"strconv"
+
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/gocolly/colly/v2"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/driver/mobile"
 )
+
+type numericalEntry struct {
+	widget.Entry
+}
+
+func newNumericalEntry() *numericalEntry {
+	entry := &numericalEntry{}
+	entry.ExtendBaseWidget(entry)
+	return entry
+}
+
+func (e *numericalEntry) TypedRune(r rune) {
+	if (r >= '0' && r <= '9') || r == '.' || r == ',' {
+		e.Entry.TypedRune(r)
+	}
+}
+
+func (e *numericalEntry) TypedShortcut(shortcut fyne.Shortcut) {
+	paste, ok := shortcut.(*fyne.ShortcutPaste)
+	if !ok {
+		e.Entry.TypedShortcut(shortcut)
+		return
+	}
+
+	content := paste.Clipboard.Content()
+	if _, err := strconv.ParseFloat(content, 64); err == nil {
+		e.Entry.TypedShortcut(shortcut)
+	}
+}
+
+func (e *numericalEntry) Keyboard() mobile.KeyboardType {
+	return mobile.NumberKeyboard
+}
 
 type vehicle struct {
 	producer                   string
@@ -34,7 +72,7 @@ func getVehicleByNum(vehicleNum string) string {
 		vehicleURL = text
 	})
 	c2.Visit(searchURL)
-	if searchURL == "" {
+	if vehicleURL == "" {
 		return ""
 	} else {
 		var retrievedData [10]string
@@ -65,10 +103,10 @@ func getVehicleByNum(vehicleNum string) string {
 
 		output_string := fmt.Sprintf(
 			`%s %s
-		 	z roku %s,
-	 	 	w posiadaniu %s,
-		 	z zajezdni %s,
-		 	o rejestracji %s`, retrievedVehicle.producer, retrievedVehicle.model, retrievedVehicle.production_year, retrievedVehicle.operator, retrievedVehicle.garage, retrievedVehicle.vehicle_registration_plate)
+z roku %s,
+w posiadaniu %s,
+z zajezdni %s,
+o rejestracji %s`, retrievedVehicle.producer, retrievedVehicle.model, retrievedVehicle.production_year, retrievedVehicle.operator, retrievedVehicle.garage, retrievedVehicle.vehicle_registration_plate)
 		return output_string
 	}
 
@@ -79,7 +117,7 @@ func main() {
 	w := a.NewWindow("Hello")
 
 	output := widget.NewLabel("")
-	entry := widget.NewEntry()
+	entry := newNumericalEntry()
 	form := &widget.Form{
 		Items: []*widget.FormItem{ // we can specify items in the constructor
 			{Text: "Podaj numer taborowy pojazdu:", Widget: entry}},
@@ -96,6 +134,8 @@ func main() {
 	clearButton := widget.NewButton("Wyczyść", func() {
 		entry.Text = ""
 		output.Text = ""
+		output.Refresh()
+		entry.Refresh()
 	})
 	w.SetContent(container.NewVBox(
 		form,
