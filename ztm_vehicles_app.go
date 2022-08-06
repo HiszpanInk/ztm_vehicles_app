@@ -65,11 +65,10 @@ func getVehicleByNum(vehicleNum string) string {
 
 		output_string := fmt.Sprintf(
 			`%s %s
-				z roku %s,
-				w posiadaniu %s,
-				z zajezdni %s,
-				o rejestracji %s
-			`, retrievedVehicle.producer, retrievedVehicle.model, retrievedVehicle.production_year, retrievedVehicle.operator, retrievedVehicle.garage, retrievedVehicle.vehicle_registration_plate)
+		 	z roku %s,
+	 	 	w posiadaniu %s,
+		 	z zajezdni %s,
+		 	o rejestracji %s`, retrievedVehicle.producer, retrievedVehicle.model, retrievedVehicle.production_year, retrievedVehicle.operator, retrievedVehicle.garage, retrievedVehicle.vehicle_registration_plate)
 		return output_string
 	}
 
@@ -94,9 +93,13 @@ func main() {
 		}
 		output.Refresh()
 	}
-
+	clearButton := widget.NewButton("Wyczyść", func() {
+		entry.Text = ""
+		output.Text = ""
+	})
 	w.SetContent(container.NewVBox(
 		form,
+		clearButton,
 		output,
 	))
 
