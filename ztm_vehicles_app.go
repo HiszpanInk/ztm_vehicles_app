@@ -85,15 +85,18 @@ func vehicleToString(inputVehicle *vehicle) string {
 func getVehiclesByNum(vehicleNum string) string {
 	searchURL := fmt.Sprintf("https://www.ztm.waw.pl/baza-danych-pojazdow/?ztm_traction=&ztm_make=&ztm_model=&ztm_year=&ztm_registration=&ztm_vehicle_number=%s&ztm_carrier=&ztm_depot=", vehicleNum)
 	var vehicleURLs []string
-
 	c2 := colly.NewCollector(
-		// Visit only domains:
 		colly.AllowedDomains("www.ztm.waw.pl"),
+		colly.UserAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"),
+		colly.AllowURLRevisit(),
 	)
+
+	// Find and visit all links
 	c2.OnHTML(".grid-row-active", func(e *colly.HTMLElement) {
 		text := e.Attr("href")
 		vehicleURLs = append(vehicleURLs, text)
 	})
+
 	c2.Visit(searchURL)
 	output_string := ""
 	for _, vehicleURL := range vehicleURLs {
@@ -102,6 +105,8 @@ func getVehiclesByNum(vehicleNum string) string {
 		c := colly.NewCollector(
 			// Visit only domains:
 			colly.AllowedDomains("www.ztm.waw.pl"),
+			colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"),
+			colly.AllowURLRevisit(),
 		)
 		dataIndex := 0
 		c.OnHTML(".vehicle-details-entry-value", func(e *colly.HTMLElement) {
